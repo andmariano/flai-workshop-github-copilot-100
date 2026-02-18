@@ -27,48 +27,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
         
-        // Create participants list
-        let participantsList = '';
+        // Create participants list using DOM APIs to prevent XSS
+        let participantsSection;
         if (details.participants.length > 0) {
-          const participantItems = details.participants
-            .map(email => `
-              <li>
-                <span class="participant-email">${email}</span>
-                <button class="delete-btn" data-activity="${name}" data-email="${email}" title="Remove participant">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
-              </li>
-            `)
-            .join('');
-          participantsList = `
-            <div class="participants-section">
-              <strong>Participants (${details.participants.length}):</strong>
-              <ul class="participants-list">
-                ${participantItems}
-              </ul>
-            </div>
-          `;
+          participantsSection = document.createElement('div');
+          participantsSection.className = 'participants-section';
+          
+          const participantsLabel = document.createElement('strong');
+          participantsLabel.textContent = `Participants (${details.participants.length}):`;
+          participantsSection.appendChild(participantsLabel);
+          
+          const participantsList = document.createElement('ul');
+          participantsList.className = 'participants-list';
+          
+          details.participants.forEach(email => {
+            const listItem = document.createElement('li');
+            
+            const emailSpan = document.createElement('span');
+            emailSpan.className = 'participant-email';
+            emailSpan.textContent = email;
+            listItem.appendChild(emailSpan);
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-btn';
+            deleteButton.dataset.activity = name;
+            deleteButton.dataset.email = email;
+            deleteButton.title = 'Remove participant';
+            deleteButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            `;
+            listItem.appendChild(deleteButton);
+            
+            participantsList.appendChild(listItem);
+          });
+          
+          participantsSection.appendChild(participantsList);
         } else {
-          participantsList = `
-            <div class="participants-section">
-              <strong>Participants:</strong>
-              <p class="no-participants">No participants yet. Be the first to sign up!</p>
-            </div>
-          `;
+          participantsSection = document.createElement('div');
+          participantsSection.className = 'participants-section';
+          
+          const participantsLabel = document.createElement('strong');
+          participantsLabel.textContent = 'Participants:';
+          participantsSection.appendChild(participantsLabel);
+          
+          const noParticipantsMsg = document.createElement('p');
+          noParticipantsMsg.className = 'no-participants';
+          noParticipantsMsg.textContent = 'No participants yet. Be the first to sign up!';
+          participantsSection.appendChild(noParticipantsMsg);
         }
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          ${participantsList}
-        `;
+        // Build activity card content using DOM APIs
+        const heading = document.createElement('h4');
+        heading.textContent = name;
+        activityCard.appendChild(heading);
+        
+        const description = document.createElement('p');
+        description.textContent = details.description;
+        activityCard.appendChild(description);
+        
+        const schedule = document.createElement('p');
+        const scheduleLabel = document.createElement('strong');
+        scheduleLabel.textContent = 'Schedule: ';
+        schedule.appendChild(scheduleLabel);
+        schedule.appendChild(document.createTextNode(details.schedule));
+        activityCard.appendChild(schedule);
+        
+        const availability = document.createElement('p');
+        const availabilityLabel = document.createElement('strong');
+        availabilityLabel.textContent = 'Availability: ';
+        availability.appendChild(availabilityLabel);
+        availability.appendChild(document.createTextNode(`${spotsLeft} spots left`));
+        activityCard.appendChild(availability);
+        
+        activityCard.appendChild(participantsSection);
 
         activitiesList.appendChild(activityCard);
 
