@@ -16,12 +16,9 @@ def client():
 @pytest.fixture(autouse=True)
 def reset_activities():
     """Reset activities data before each test"""
-    # Store original state
+    # Store original state (only fields that tests mutate)
     original_activities = {
         name: {
-            "description": details["description"],
-            "schedule": details["schedule"],
-            "max_participants": details["max_participants"],
             "participants": details["participants"].copy()
         }
         for name, details in activities.items()
